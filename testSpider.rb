@@ -19,7 +19,12 @@ end
 class TestSpider < Test::Unit::TestCase
     
     def testLinksExtracted
-        assert_equal(["/about"], extractUrlsFromPage(Nokogiri::HTML("<a href=\"/about\"/>")))
+        assert_equal(["/about#"], extractUrlsFromPage(Nokogiri::HTML("<a href=\"/about#\"/>")))
+    end
+    
+    def testInvalidUrlsDiscarded
+        invalidUrls = ["/", "javascript:blah" "#foo-bar", "mailto:a@b.com"]
+        assert_equal([], filterUrlsToDomain("example.com", invalidUrls))
     end
   
     def testStaticResourcesExtracted
@@ -62,6 +67,20 @@ class TestSpider < Test::Unit::TestCase
 
     def testPageToHTMLReportGeneration
         page = Page.new("example.com", ["/about", "/contact"], ["/sleepingKitten.jpg"])
-        File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
+        renderPageToHtml(page)
     end
+    
+  #  def testHomepage
+  #      fetcher = HttpPageFetcher.new("https://gocardless.com")
+  #      page = fetcher.fetch("https://gocardless.com")
+  #      puts page.links;
+  #      #File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
+  #  end
+    
+   # def testCrawlOutline
+   #     domain = "http://outlinegames.com"
+   #     spider = Spider.new(domain, HttpPageFetcher.new(domain))
+        
+   #     spider.pageMap.values.each {|x| File.open(domain + "/" + x.url + ".html", 'w') {|f| f.write(renderPageToHtml(x)) } }
+   # end
 end

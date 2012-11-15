@@ -2,6 +2,7 @@
 
 require 'uri'
 require 'open-uri'
+require "addressable/uri"
 
 def extractUrlsFromPage(nokogiriDoc)
     return nokogiriDoc.xpath("//a").map {|x| x['href']}.uniq
@@ -13,7 +14,9 @@ end
 
 def filterUrlsToDomain(domain, urls)
     urls = urls.map {|x| URI(x)}
-    return urls.select {|x| nil == x.host || x.host == domain}.map {|x| String(x)}
+    filtered = urls.select {|x| nil == x.host || x.host == domain}.map {|x| x.to_s}
+    invalidUrlRegexes = [/^\/$/, /^#/, /^javascript/, /^mailto:/]
+    return filtered.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}
 end
 
 class Page
@@ -33,16 +36,19 @@ def renderPageToHtml(page)
     doc.html {
         doc.body() {
             doc.h1(page.url)
-            doc.h1("Links to:")
-            doc.ul {
-                page.links.each do |l|
-                    doc.li {
-                        doc.a(:href => l) {
-                            doc.text l
+            [["Links to:", page.links],
+             ["References resources:", page.staticResources]].each do |title, urls|
+                doc.h1(title)
+                doc.ul {
+                    urls.each do |l|
+                        doc.li {
+                            doc.a(:href => l) {
+                                doc.text l
+                            }
                         }
-                    }
-                end
-            }
+                    end
+                }
+            end
         }
     }
     end
@@ -56,7 +62,13 @@ class HttpPageFetcher
     end
     
     def fetch(url)
-        doc = Nokogiri::HTML(open(url))
+        begin
+            stream = open(url)
+        rescue TypeError => e
+            puts "Unable to open:"
+        end
+        
+        doc = Nokogiri::HTML(stream)
         urls = filterUrlsToDomain(@domain, extractUrlsFromPage(doc))
         return Page.new(url, urls, extractStaticResourcesFromPage(doc))
     end
