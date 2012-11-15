@@ -1,15 +1,14 @@
 #!/usr/bin/env ruby
 
 require 'uri'
+require 'open-uri'
 
-def extractUrlsFromPage(html)
-    doc = Nokogiri::HTML(html)
-    return doc.xpath("//a").map {|x| x['href']}
+def extractUrlsFromPage(nokogiriDoc)
+    return nokogiriDoc.xpath("//a").map {|x| x['href']}.uniq
 end
 
-def extractStaticResourcesFromPage(html)
-    doc = Nokogiri::HTML(html)
-    return doc.xpath("//*[@src]").map {|x| x['src']}
+def extractStaticResourcesFromPage(nokogiriDoc)
+    return nokogiriDoc.xpath("//*[@src]").map {|x| x['src']}.uniq
 end
 
 def filterUrlsToDomain(domain, urls)
@@ -20,11 +19,25 @@ end
 class Page
     attr_accessor :url
     attr_accessor :links
+    attr_accessor :staticResources
     
-    def initialize(url, containsUrls, staticResources)
+    def initialize(url, links, staticResources)
         @url = url
-        @links = containsUrls
+        @links = links
         @staticResources = staticResources
+    end
+end
+
+class HttpPageFetcher
+    
+    def initialize(domain)
+        @domain = domain
+    end
+    
+    def fetch(url)
+        doc = Nokogiri::HTML(open(url))
+        urls = filterUrlsToDomain(@domain, extractUrlsFromPage(doc))
+        return Page.new(url, urls, extractStaticResourcesFromPage(doc))
     end
 end
 
@@ -40,6 +53,7 @@ class Spider
     end
     
     def go(url)
+        url = URI.join(@domain, url)
         if (@pageMap.has_key?(url))
             return
         end
@@ -47,12 +61,4 @@ class Spider
         @pageMap[url] = page
         page.links.each {|x| go(x)}
     end
-end
-
-class UrlFetcher
-
-    def fetch(url)
-        
-    end
-    
 end
