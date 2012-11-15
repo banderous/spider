@@ -59,12 +59,9 @@ class TestSpider < Test::Unit::TestCase
         spider = Spider.new(domain, pages)
         assert_equal([homePage, aboutPage], spider.pageMap.values)
     end
-=begin
-    def testPageFetcher
-       fetcher = HttpPageFetcher.new("w3.org")
-       page = fetcher.fetch("http://www.w3.org")
-       puts page.links()
-       puts page.staticResources()
+
+    def testPageToHTMLReportGeneration
+        page = Page.new("example.com", ["/about", "/contact"], ["/sleepingKitten.jpg"])
+        File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
     end
-=end
 end

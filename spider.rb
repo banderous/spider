@@ -28,6 +28,27 @@ class Page
     end
 end
 
+def renderPageToHtml(page)
+    builder = Nokogiri::HTML::Builder.new do |doc|
+    doc.html {
+        doc.body() {
+            doc.h1(page.url)
+            doc.h1("Links to:")
+            doc.ul {
+                page.links.each do |l|
+                    doc.li {
+                        doc.a(:href => l) {
+                            doc.text l
+                        }
+                    }
+                end
+            }
+        }
+    }
+    end
+    return builder.to_html
+end
+
 class HttpPageFetcher
     
     def initialize(domain)
