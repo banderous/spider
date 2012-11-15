@@ -13,10 +13,18 @@ def extractStaticResourcesFromPage(nokogiriDoc)
 end
 
 def filterUrlsToDomain(domain, urls)
-    urls = urls.map {|x| URI(x)}
-    filtered = urls.select {|x| nil == x.host || x.host == domain}.map {|x| x.to_s}
     invalidUrlRegexes = [/^\/$/, /^#/, /^javascript/, /^mailto:/]
-    return filtered.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}
+    urls = urls.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}
+            urls = urls.map do |x|
+                begin
+                    URI(x)
+                rescue Exception => e
+                    next
+                end
+           
+    end
+    
+    filtered = urls.compact.select {|x| nil == x.host || x.host == domain}.map {|x| x.to_s}
 end
 
 class Page
@@ -25,29 +33,36 @@ class Page
     attr_accessor :staticResources
     
     def initialize(url, links, staticResources)
-        @url = url
+        @url = url.to_s
         @links = links
         @staticResources = staticResources
     end
 end
 
-def renderPageToHtml(page)
+def renderPagesToHtml(pages)
     builder = Nokogiri::HTML::Builder.new do |doc|
     doc.html {
         doc.body() {
-            doc.h1(page.url)
-            [["Links to:", page.links],
-             ["References resources:", page.staticResources]].each do |title, urls|
-                doc.h1(title)
-                doc.ul {
-                    urls.each do |l|
-                        doc.li {
-                            doc.a(:href => l) {
-                                doc.text l
-                            }
-                        }
-                    end
+            pages.each do |page|
+                doc.h1 {
+                    path = URI(page.url).path
+                    doc.a(:name => path) {
+                        doc.text path
+                    }
                 }
+                [["Links to:", page.links],
+                 ["References resources:", page.staticResources]].each do |title, urls|
+                    doc.h1(title)
+                    doc.ul {
+                        urls.each do |l|
+                            doc.li {
+                                doc.a(:href => "#" + l) {
+                                    doc.text l
+                                }
+                            }
+                        end
+                    }
+                end
             end
         }
     }
@@ -66,6 +81,8 @@ class HttpPageFetcher
             stream = open(url)
         rescue TypeError => e
             puts "Unable to open:"
+        rescue RuntimeError => r
+            puts "Another"
         end
         
         doc = Nokogiri::HTML(stream)

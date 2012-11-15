@@ -65,22 +65,19 @@ class TestSpider < Test::Unit::TestCase
         assert_equal([homePage, aboutPage], spider.pageMap.values)
     end
 
-    def testPageToHTMLReportGeneration
-        page = Page.new("example.com", ["/about", "/contact"], ["/sleepingKitten.jpg"])
-        renderPageToHtml(page)
-    end
     
-  #  def testHomepage
-  #      fetcher = HttpPageFetcher.new("https://gocardless.com")
-  #      page = fetcher.fetch("https://gocardless.com")
-  #      puts page.links;
-  #      #File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
-  #  end
-    
-   # def testCrawlOutline
-   #     domain = "http://outlinegames.com"
-   #     spider = Spider.new(domain, HttpPageFetcher.new(domain))
+ #   def testHomepage
+ #       fetcher = HttpPageFetcher.new("https://gocardless.com")
+ #       page = fetcher.fetch("https://gocardless.com")
+ #       puts page.links;
+ #       File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
+ #   end
+=begin
+    def testCrawl
+        domain = "https://gocardless.com"
+        spider = Spider.new(domain, HttpPageFetcher.new(domain))
         
-   #     spider.pageMap.values.each {|x| File.open(domain + "/" + x.url + ".html", 'w') {|f| f.write(renderPageToHtml(x)) } }
-   # end
+        File.open("report.html", 'w') {|f| f.write(renderPagesToHtml(spider.pageMap.values))}
+    end
+=end
 end
