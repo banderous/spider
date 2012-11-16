@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require_relative "reportRenderer"
 require_relative "spider"
 require "nokogiri"
 require "test/unit"
@@ -65,19 +66,12 @@ class TestSpider < Test::Unit::TestCase
         assert_equal([homePage, aboutPage], spider.pageMap.values)
     end
 
-=begin
-        def testHomepage
-            fetcher = HttpPageFetcher.new("https://gocardless.com")
-            page = fetcher.fetch("https://gocardless.com")
-            puts page.links;
-            File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
-        end
-    
+begin   
         def testCrawl
-            domain = "https://gocardless.com"
+            domain = "http://gocardless.com"
             spider = Spider.new(domain, HttpPageFetcher.new(domain))
             
             File.open("report.html", 'w') {|f| f.write(renderPagesToHtml(spider.pageMap.values))}
         end
-=end
+end
 end
