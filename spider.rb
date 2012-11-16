@@ -135,9 +135,9 @@ if (ARGV.length == 1)
     if (URI(domain).host == nil)
         puts "Protocol must be specified"
         showHelp()
-        return
+    else
+        puts renderPagesToHtml(domain, do_spider(domain, HttpPageFetcher.new(domain)))
     end
-    puts renderPagesToHtml(domain, do_spider(domain, HttpPageFetcher.new(domain)))
 else
     showHelp()
 end
