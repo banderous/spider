@@ -8,6 +8,7 @@ Spider
 Spider depends on the Nokogiri HTML parsing library, and the HTTPClient library, which may be installed as follows:
 
 gem install httpclient
+
 gem install nokogiri
 
 <dl>
