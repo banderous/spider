@@ -22,7 +22,17 @@ end
 
 def filterUrlsToDomain(domain, urls)
     urls = urls.map {|x| URI(x)}
-    return urls.compact.select {|x| nil == x.host || x.host == domain}.map {|x| x.to_s}
+    domain = URI(domain)
+    urls = urls.compact.select do |x|
+        nil == x.host || (x.host =~ /#{domain.host}$/) 
+    end
+    return urls.map {|x| x.to_s}
+end
+
+def sanitisePageForDomain(domain, page)
+    return Page.new(page.url,
+                    filterUrlsToDomain(domain, filterInvalidURLs(page.links)),
+                    page.staticResources)
 end
 
 class Page
@@ -34,6 +44,10 @@ class Page
         @url = url.to_s
         @links = links
         @staticResources = staticResources
+    end
+    
+    def ==(other)
+        [@url, @links, @staticResources] == [other.url, other.links, other.staticResources]
     end
 end
 
@@ -51,9 +65,7 @@ class HttpPageFetcher
             return Page.new(url,[],[])
         end
         doc = Nokogiri::HTML(response.body)
-        urls = filterInvalidURLs(extractUrlsFromPage(doc))
-        urls = filterUrlsToDomain(@domain, urls)
-        return Page.new(url, urls, extractStaticResourcesFromPage(doc))
+        return Page.new(url, extractUrlsFromPage(doc), extractStaticResourcesFromPage(doc))
     end
 end
 
@@ -73,12 +85,17 @@ class Spider
         if (@pageMap.has_key?(url))
             return
         end
-        page = @fetcher.fetch(url)
+        page = sanitisePageForDomain(@domain, @fetcher.fetch(url))
+        
         @pageMap[url] = page
         page.links.each {|x| go(x)}
     end
 end
 
+=begin
+Generates an HTML report for a set of pages summaries,
+detailing each page's links and static resources.
+=end
 def renderPagesToHtml(domain, pages)
     builder = Nokogiri::HTML::Builder.new do |doc|
     doc.html {

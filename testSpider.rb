@@ -32,12 +32,12 @@ class TestSpider < Test::Unit::TestCase
     end
     
     def testLinksInsideDomainIncluded
-        urls = ["/about", "support.example.com/help"]
-        assert_equal(urls, filterUrlsToDomain("example.com", urls))
+        urls = ["/about", "http://support.example.com/help", "support.example.com/help"]
+        assert_equal(urls, filterUrlsToDomain("http://example.com", urls))
     end
     
     def testLinksOutsideOfDomainExcluded
-        assert_equal([], filterUrlsToDomain("example.com", ["http://another.domain.com/goodbye"]))
+        assert_equal([], filterUrlsToDomain("http://example.com", ["http://another.domain.com/goodbye"]))
     end
     
     def testSingleCircularPage
