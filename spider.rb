@@ -12,19 +12,22 @@ def extractStaticResourcesFromPage(nokogiriDoc)
     return nokogiriDoc.xpath("//*[@src]").map {|x| x['src']}.uniq
 end
 
+def filterInvalidURLs(urls)
+    invalidUrlRegexes = [/^\/$/, /^#/, /^javascript/, /^mailto:/, /^tel:/]
+    return urls.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}
+end
+
 def filterUrlsToDomain(domain, urls)
-    invalidUrlRegexes = [/^\/$/, /^#/, /^javascript/, /^mailto:/]
-    urls = urls.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}
-            urls = urls.map do |x|
-                begin
-                    URI(x)
-                rescue Exception => e
-                    next
-                end
+    urls = urls.map do |x|
+        begin
+            URI(x)
+        rescue Exception => e
+            next
+        end
            
     end
     
-    filtered = urls.compact.select {|x| nil == x.host || x.host == domain}.map {|x| x.to_s}
+    return urls.compact.select {|x| nil == x.host || x.host == domain}.map {|x| x.to_s}
 end
 
 class Page
@@ -52,7 +55,7 @@ def renderPagesToHtml(pages)
                 }
                 [["Links to:", page.links],
                  ["References resources:", page.staticResources]].each do |title, urls|
-                    doc.h1(title)
+                    doc.h2(title)
                     doc.ul {
                         urls.each do |l|
                             doc.li {

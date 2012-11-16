@@ -23,8 +23,8 @@ class TestSpider < Test::Unit::TestCase
     end
     
     def testInvalidUrlsDiscarded
-        invalidUrls = ["/", "javascript:blah" "#foo-bar", "mailto:a@b.com"]
-        assert_equal([], filterUrlsToDomain("example.com", invalidUrls))
+        invalidUrls = ["/", "javascript:blah", "#foo-bar", "mailto:a@b.com", "tel:999"]
+        assert_equal([], filterInvalidURLs(invalidUrls))
     end
   
     def testStaticResourcesExtracted
