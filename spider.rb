@@ -69,27 +69,16 @@ class HttpPageFetcher
     end
 end
 
-class Spider
-
-    attr_accessor :pageMap
-    
-    def initialize(domain, pageFetcher)
-        @domain = domain
-        @fetcher = pageFetcher
-        @pageMap = Hash.new
-        go(domain)
+def do_spider(domain, pageFetcher, url = domain, pageMap = Hash.new)
+    url = URI.join(domain, url)
+    if (pageMap.has_key?(url))
+        return
     end
+    page = sanitisePageForDomain(domain, pageFetcher.fetch(url))
     
-    def go(url)
-        url = URI.join(@domain, url)
-        if (@pageMap.has_key?(url))
-            return
-        end
-        page = sanitisePageForDomain(@domain, @fetcher.fetch(url))
-        
-        @pageMap[url] = page
-        page.links.each {|x| go(x)}
-    end
+    pageMap[url] = page
+    page.links.each {|x| do_spider(domain, pageFetcher, x, pageMap)}
+    return pageMap.values
 end
 
 # Attempts to extract the path from a specified URL.
@@ -138,8 +127,7 @@ end
 
 if (ARGV.length == 1)
     domain = ARGV[0]
-    spider = Spider.new(domain, HttpPageFetcher.new(domain))
-    puts renderPagesToHtml(domain, spider.pageMap.values)
+    puts renderPagesToHtml(domain, do_spider(domain, HttpPageFetcher.new(domain)))
 else
     puts "Usage: domain"
     puts "Eg: http://example.com > example.html"

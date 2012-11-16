@@ -45,8 +45,8 @@ class TestSpider < Test::Unit::TestCase
         domain = "http://example.com"
         # Our homepage has a single link to itself
         homePage = Page.new(domain, [domain], [])
-        spider = Spider.new(domain, FakePageFetcher.new(domain, [homePage]))
-        assert_equal([homePage], spider.pageMap.values)
+        fetcher = FakePageFetcher.new(domain, [homePage])
+        assert_equal([homePage], do_spider(domain, fetcher))
     end
     
     def testTwoCircularlyLinkedPages
@@ -58,8 +58,7 @@ class TestSpider < Test::Unit::TestCase
         # Home page links to about
         homePage = Page.new(domain, [aboutPage.url], [])
             
-        pages = FakePageFetcher.new(domain, [homePage, aboutPage])
-        spider = Spider.new(domain, pages)
-        assert_equal([homePage, aboutPage], spider.pageMap.values)
+        fetcher = FakePageFetcher.new(domain, [homePage, aboutPage])
+        assert_equal([homePage, aboutPage], do_spider(domain, fetcher))
     end
 end
