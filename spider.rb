@@ -1,8 +1,12 @@
 #!/usr/bin/env ruby
 
-require 'uri'
-require 'open-uri'
 require "addressable/uri"
+require 'httpclient'
+require "nokogiri"
+require 'open-uri'
+require 'uri'
+
+INVALID_URL_REGEXES = [/^\/$/, /^#/, /^javascript/, /^mailto:/, /^tel:/]
 
 def extractUrlsFromPage(nokogiriDoc)
     return nokogiriDoc.xpath("//a").map {|x| x['href']}.uniq
@@ -13,8 +17,7 @@ def extractStaticResourcesFromPage(nokogiriDoc)
 end
 
 def filterInvalidURLs(urls)
-    invalidUrlRegexes = [/^\/$/, /^#/, /^javascript/, /^mailto:/, /^tel:/]
-    return urls.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}.compact
+    return urls.select {|x| INVALID_URL_REGEXES.map {|r| r.match(x)}.compact.empty?}.compact
 end
 
 def filterUrlsToDomain(domain, urls)
@@ -38,18 +41,16 @@ class HttpPageFetcher
     
     def initialize(domain)
         @domain = domain
+        @http = HTTPClient.new
     end
     
     def fetch(url)
         begin
-            stream = open(url)
-        rescue TypeError => e
-            puts "Unable to open:"
-        rescue RuntimeError => r
-            puts "Another"
+            response = @http.get(url, :follow_redirect => true)
+        rescue HTTPClient::BadResponseError # If https attempts to redirect to http.
+            return Page.new(url,[],[])
         end
-        
-        doc = Nokogiri::HTML(stream)
+        doc = Nokogiri::HTML(response.body)
         urls = filterInvalidURLs(extractUrlsFromPage(doc))
         urls = filterUrlsToDomain(@domain, urls)
         return Page.new(url, urls, extractStaticResourcesFromPage(doc))
@@ -76,4 +77,47 @@ class Spider
         @pageMap[url] = page
         page.links.each {|x| go(x)}
     end
+end
+
+def renderPagesToHtml(domain, pages)
+    builder = Nokogiri::HTML::Builder.new do |doc|
+    doc.html {
+        doc.body() {
+            pages.each do |page|
+                links = page.links.map {|x| "#" + x}
+                resources = page.staticResources.map {|x| URI.join(domain, x)}
+                doc.h1 {
+                    path = URI(page.url).path
+                    path = path == nil || path.length == 0 ? page.url : path
+                    doc.a(:name => path) {
+                        doc.text path
+                    }
+                }
+                [["Links to:", links],
+                 ["References resources:", resources]].each do |title, urls|
+                    doc.h2(title)
+                    doc.ul {
+                        urls.each do |l|
+                            doc.li {
+                                doc.a(:href => l) {
+                                    doc.text l
+                                }
+                            }
+                        end
+                    }
+                end
+            end
+        }
+    }
+    end
+    return builder.to_html
+end
+
+if (ARGV.length == 1)
+    domain = ARGV[0]
+    spider = Spider.new(domain, HttpPageFetcher.new(domain))
+    puts renderPagesToHtml(domain, spider.pageMap.values)
+else
+    puts "Usage: domain"
+    puts "Eg: http://example.com > example.html"
 end
