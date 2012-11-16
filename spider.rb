@@ -35,6 +35,7 @@ def sanitisePageForDomain(domain, page)
                     page.staticResources)
 end
 
+# Represents a web page as a URL, its links and static resources.
 class Page
     attr_accessor :url
     attr_accessor :links
