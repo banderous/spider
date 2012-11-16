@@ -14,19 +14,11 @@ end
 
 def filterInvalidURLs(urls)
     invalidUrlRegexes = [/^\/$/, /^#/, /^javascript/, /^mailto:/, /^tel:/]
-    return urls.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}
+    return urls.select {|x| invalidUrlRegexes.map {|r| r.match(x)}.compact.empty?}.compact
 end
 
 def filterUrlsToDomain(domain, urls)
-    urls = urls.map do |x|
-        begin
-            URI(x)
-        rescue Exception => e
-            next
-        end
-           
-    end
-    
+    urls = urls.map {|x| URI(x)}
     return urls.compact.select {|x| nil == x.host || x.host == domain}.map {|x| x.to_s}
 end
 
@@ -89,7 +81,8 @@ class HttpPageFetcher
         end
         
         doc = Nokogiri::HTML(stream)
-        urls = filterUrlsToDomain(@domain, extractUrlsFromPage(doc))
+        urls = filterInvalidURLs(extractUrlsFromPage(doc))
+        urls = filterUrlsToDomain(@domain, urls)
         return Page.new(url, urls, extractStaticResourcesFromPage(doc))
     end
 end

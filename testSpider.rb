@@ -17,13 +17,13 @@ class FakePageFetcher
 end
 
 class TestSpider < Test::Unit::TestCase
-    
+
     def testLinksExtracted
         assert_equal(["/about#"], extractUrlsFromPage(Nokogiri::HTML("<a href=\"/about#\"/>")))
     end
     
     def testInvalidUrlsDiscarded
-        invalidUrls = ["/", "javascript:blah", "#foo-bar", "mailto:a@b.com", "tel:999"]
+        invalidUrls = ["/", "javascript:blah", "#foo-bar", "mailto:a@b.com", "tel:999", nil]
         assert_equal([], filterInvalidURLs(invalidUrls))
     end
   
@@ -65,19 +65,19 @@ class TestSpider < Test::Unit::TestCase
         assert_equal([homePage, aboutPage], spider.pageMap.values)
     end
 
-    
- #   def testHomepage
- #       fetcher = HttpPageFetcher.new("https://gocardless.com")
- #       page = fetcher.fetch("https://gocardless.com")
- #       puts page.links;
- #       File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
- #   end
 =begin
-    def testCrawl
-        domain = "https://gocardless.com"
-        spider = Spider.new(domain, HttpPageFetcher.new(domain))
-        
-        File.open("report.html", 'w') {|f| f.write(renderPagesToHtml(spider.pageMap.values))}
-    end
+        def testHomepage
+            fetcher = HttpPageFetcher.new("https://gocardless.com")
+            page = fetcher.fetch("https://gocardless.com")
+            puts page.links;
+            File.open("test.html", 'w') {|f| f.write(renderPageToHtml(page)) }
+        end
+    
+        def testCrawl
+            domain = "https://gocardless.com"
+            spider = Spider.new(domain, HttpPageFetcher.new(domain))
+            
+            File.open("report.html", 'w') {|f| f.write(renderPagesToHtml(spider.pageMap.values))}
+        end
 =end
 end
