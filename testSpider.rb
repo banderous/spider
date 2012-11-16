@@ -3,7 +3,8 @@
 require_relative "spider"
 require "test/unit"
 
-# Allows us to test our spider with test page structures.
+# Allows us to test our spider in isolation,
+# without making HTTP requests.
 class FakePageFetcher
     
     def initialize(domain, pages)
