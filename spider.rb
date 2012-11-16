@@ -124,10 +124,19 @@ def renderPagesToHtml(domain, pages)
     return builder.to_html
 end
 
-if (ARGV.length == 1)
-    domain = ARGV[0]
-    puts renderPagesToHtml(domain, do_spider(domain, HttpPageFetcher.new(domain)))
-else
+def showHelp
     puts "Usage: domain"
     puts "Eg: http://example.com > example.html"
+end
+
+if (ARGV.length == 1)
+    domain = ARGV[0]
+    if (URI(domain).host == nil)
+        puts "Protocol must be specified"
+        showHelp()
+        return
+    end
+    puts renderPagesToHtml(domain, do_spider(domain, HttpPageFetcher.new(domain)))
+else
+    showHelp()
 end
