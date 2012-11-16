@@ -92,6 +92,13 @@ class Spider
     end
 end
 
+# Attempts to extract the path from a specified URL.
+# If no path exists, url is returned.
+def extractPathFromURL(url)
+    path = URI(url).path
+    return path == nil || path.length == 0 ? url : path    
+end
+
 =begin
 Generates an HTML report for a set of pages summaries,
 detailing each page's links and static resources.
@@ -101,11 +108,10 @@ def renderPagesToHtml(domain, pages)
     doc.html {
         doc.body() {
             pages.each do |page|
-                links = page.links.map {|x| "#" + x}
+                links = page.links.map {|x| "#" + extractPathFromURL(x)}.sort.uniq
                 resources = page.staticResources.map {|x| URI.join(domain, x)}
                 doc.h1 {
-                    path = URI(page.url).path
-                    path = path == nil || path.length == 0 ? page.url : path
+                    path = extractPathFromURL(page.url)
                     doc.a(:name => path) {
                         doc.text path
                     }

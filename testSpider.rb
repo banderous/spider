@@ -3,6 +3,7 @@
 require_relative "spider"
 require "test/unit"
 
+# Allows us to test our spider with test page structures.
 class FakePageFetcher
     
     def initialize(domain, pages)
@@ -44,9 +45,7 @@ class TestSpider < Test::Unit::TestCase
         domain = "http://example.com"
         # Our homepage has a single link to itself
         homePage = Page.new(domain, [domain], [])
-        pages = FakePageFetcher.new(domain, [homePage])
-        pages.fetch(domain)
-        spider = Spider.new(domain, pages)
+        spider = Spider.new(domain, FakePageFetcher.new(domain, [homePage]))
         assert_equal([homePage], spider.pageMap.values)
     end
     
