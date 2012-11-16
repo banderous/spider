@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require "addressable/uri"
 require 'httpclient'
 require "nokogiri"
 require 'open-uri'
