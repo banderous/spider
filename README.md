@@ -9,3 +9,9 @@ Spider depends on the Nokogiri HTML parsing library, and the HTTPClient library,
 
 gem install httpclient
 gem install nokogiri
+
+<dl>
+  <dt>Usage</dt>
+</dl>
+
+ruby spider http://example.com > example.html

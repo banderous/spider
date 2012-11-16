@@ -74,8 +74,8 @@ def do_spider(domain, pageFetcher, url = domain, pageMap = Hash.new)
     if (pageMap.has_key?(url))
         return
     end
-    page = sanitisePageForDomain(domain, pageFetcher.fetch(url))
     
+    page = sanitisePageForDomain(domain, pageFetcher.fetch(url))
     pageMap[url] = page
     page.links.each {|x| do_spider(domain, pageFetcher, x, pageMap)}
     return pageMap.values
@@ -88,10 +88,9 @@ def extractPathFromURL(url)
     return path == nil || path.length == 0 ? url : path    
 end
 
-=begin
-Generates an HTML report for a set of pages summaries,
-detailing each page's links and static resources.
-=end
+
+# Generates an HTML report for a set of pages summaries,
+# detailing each page's links and static resources.
 def renderPagesToHtml(domain, pages)
     builder = Nokogiri::HTML::Builder.new do |doc|
     doc.html {
